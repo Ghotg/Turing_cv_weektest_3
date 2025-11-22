@@ -24,13 +24,13 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Test outputs (但保留输入的测试图片 image.jpg)
+# Test outputs (但保留输入的测试图片 image.jpg, coins.jpg)
 gray_image.jpg
 rotated_image.jpg
 processed.jpg
 display_result.png
 transform_result.png
 functions_plot.png
-edge_detection_result.png
-edges.jpg
+coins_detected.jpg
+coins_analysis.png
 *.npy
