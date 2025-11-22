@@ -1,12 +1,11 @@
 """
 题目5参考答案：交通车辆检测与流量分析系统
-综合应用 OpenCV、Numpy 和 Matplotlib 开发智能交通分析项目
+综合应用 OpenCV、Numpy 和 Matplotlib 的基础知识开发智能交通分析项目
 """
 
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
 
 # 设置中文字体
 plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
@@ -32,21 +31,16 @@ if image is None:
 
 print(f"✓ 交通图像读取成功")
 print(f"  图像尺寸: {image.shape[1]} x {image.shape[0]} 像素")
-print(f"  图像大小: {(image.shape[0] * image.shape[1]) / 1000000:.2f} 百万像素")
 
 # 保存原始图像的副本用于标注
 original_image = image.copy()
 
-# 转换为灰度图
+# 转换为灰度图（基础操作）
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 print(f"✓ 已转换为灰度图")
 
-# 直方图均衡化，增强对比度
-equalized = cv2.equalizeHist(gray)
-print(f"✓ 已应用直方图均衡化，提升图像对比度")
-
-# 高斯模糊降噪
-blurred = cv2.GaussianBlur(equalized, (5, 5), 0)
+# 高斯模糊降噪（基础操作）
+blurred = cv2.GaussianBlur(gray, (5, 5), 0)
 print(f"✓ 已应用高斯模糊降噪 (5x5)")
 
 # ============ 第二阶段：车辆检测与分割 ============
@@ -132,29 +126,21 @@ if len(vehicle_areas) > 0:
     print(f"  平均面积: {area_mean:.0f} 像素²")
     print(f"  标准差:   {area_std:.0f} 像素²")
     
-    # 车型分类（基于面积）
-    threshold_small = area_mean - 0.5 * area_std
-    threshold_large = area_mean + 0.5 * area_std
-    
+    # 简单的车型分类（基于平均面积，只分两类）
     small_vehicles = []  # 小型车
-    medium_vehicles = []  # 中型车
     large_vehicles = []  # 大型车
     
     for i, feature in enumerate(vehicle_features):
         area = feature['area']
-        if area < threshold_small:
+        if area < area_mean:
             small_vehicles.append(i)
             feature['type'] = 'small'
-        elif area > threshold_large:
+        else:
             large_vehicles.append(i)
             feature['type'] = 'large'
-        else:
-            medium_vehicles.append(i)
-            feature['type'] = 'medium'
     
-    print(f"\n车型分类统计：")
+    print(f"\n车型分类统计（以平均值为界）：")
     print(f"  小型车: {len(small_vehicles)} 辆 ({len(small_vehicles)/vehicle_count*100:.1f}%)")
-    print(f"  中型车: {len(medium_vehicles)} 辆 ({len(medium_vehicles)/vehicle_count*100:.1f}%)")
     print(f"  大型车: {len(large_vehicles)} 辆 ({len(large_vehicles)/vehicle_count*100:.1f}%)")
     
     # 计算道路车辆密度
@@ -180,10 +166,9 @@ if len(vehicle_areas) > 0:
     # 在原图上标注车辆
     result_image = original_image.copy()
     
-    # 定义车型颜色
+    # 定义车型颜色（基础的颜色定义）
     colors = {
         'small': (0, 255, 0),    # 绿色 - 小型车
-        'medium': (255, 165, 0),  # 橙色 - 中型车
         'large': (0, 0, 255)      # 红色 - 大型车
     }
     
@@ -213,105 +198,58 @@ else:
     area_mean = 0
     area_std = 1
     small_vehicles = []
-    medium_vehicles = []
     large_vehicles = []
 
 # ============ 第五阶段：可视化报告生成 ============
 print("\n【第五阶段：生成可视化分析报告】")
 
 if vehicle_count > 0:
-    # 创建 2x3 子图布局
-    fig = plt.figure(figsize=(18, 12))
+    # 创建 2x2 子图布局（使用基础的subplot）
+    fig = plt.figure(figsize=(14, 10))
     
     # 子图1：原始交通图像
-    ax1 = plt.subplot(2, 3, 1)
+    plt.subplot(2, 2, 1)
     original_rgb = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
-    ax1.imshow(original_rgb)
-    ax1.set_title('原始交通图像', fontsize=14, fontweight='bold')
-    ax1.axis('off')
+    plt.imshow(original_rgb)
+    plt.title('原始交通图像', fontsize=14, fontweight='bold')
+    plt.axis('off')
     
-    # 子图2：预处理后的图像
-    ax2 = plt.subplot(2, 3, 2)
-    ax2.imshow(blurred, cmap='gray')
-    ax2.set_title('预处理 (均衡化+降噪)', fontsize=14, fontweight='bold')
-    ax2.axis('off')
+    # 子图2：边缘检测结果
+    plt.subplot(2, 2, 2)
+    plt.imshow(opening, cmap='gray')
+    plt.title('边缘检测与形态学处理', fontsize=14, fontweight='bold')
+    plt.axis('off')
     
-    # 子图3：边缘检测结果
-    ax3 = plt.subplot(2, 3, 3)
-    ax3.imshow(opening, cmap='gray')
-    ax3.set_title('边缘检测与形态学处理', fontsize=14, fontweight='bold')
-    ax3.axis('off')
-    
-    # 子图4：车辆检测标注图
-    ax4 = plt.subplot(2, 3, 4)
+    # 子图3：车辆检测标注图
+    plt.subplot(2, 2, 3)
     result_rgb = cv2.cvtColor(result_image, cv2.COLOR_BGR2RGB)
-    ax4.imshow(result_rgb)
-    ax4.set_title(f'车辆检测结果 (共 {vehicle_count} 辆)', fontsize=14, fontweight='bold')
-    ax4.axis('off')
+    plt.imshow(result_rgb)
+    plt.title(f'车辆检测结果 (共 {vehicle_count} 辆)', fontsize=14, fontweight='bold')
+    plt.axis('off')
     
-    # 添加颜色图例
-    from matplotlib.patches import Patch
-    legend_elements = [
-        Patch(facecolor='green', label=f'小型车 ({len(small_vehicles)}辆)'),
-        Patch(facecolor='orange', label=f'中型车 ({len(medium_vehicles)}辆)'),
-        Patch(facecolor='red', label=f'大型车 ({len(large_vehicles)}辆)')
-    ]
-    ax4.legend(handles=legend_elements, loc='upper right', fontsize=10)
+    # 子图4：车辆面积分布直方图（基础直方图）
+    plt.subplot(2, 2, 4)
     
-    # 子图5：车辆面积分布直方图
-    ax5 = plt.subplot(2, 3, 5)
+    # 绘制所有车辆的面积分布
+    plt.hist(vehicle_areas, bins=15, color='skyblue', edgecolor='black', alpha=0.7)
+    plt.title('车辆面积分布直方图', fontsize=14, fontweight='bold')
+    plt.xlabel('面积 (像素²)', fontsize=12)
+    plt.ylabel('车辆数量', fontsize=12)
+    plt.grid(True, linestyle='--', alpha=0.5)
     
-    # 为不同车型使用不同颜色
-    bins = 20
-    ax5.hist([vehicle_features[i]['area'] for i in small_vehicles], 
-            bins=bins, alpha=0.7, label='小型车', color='green', edgecolor='black')
-    ax5.hist([vehicle_features[i]['area'] for i in medium_vehicles], 
-            bins=bins, alpha=0.7, label='中型车', color='orange', edgecolor='black')
-    ax5.hist([vehicle_features[i]['area'] for i in large_vehicles], 
-            bins=bins, alpha=0.7, label='大型车', color='red', edgecolor='black')
-    
-    ax5.set_title('车辆面积分布直方图', fontsize=14, fontweight='bold')
-    ax5.set_xlabel('面积 (像素²)', fontsize=12)
-    ax5.set_ylabel('车辆数量', fontsize=12)
-    ax5.legend(loc='upper right', fontsize=10)
-    ax5.grid(True, linestyle='--', alpha=0.5)
-    
-    # 添加统计信息
-    stats_text = f'平均: {area_mean:.0f}\n标准差: {area_std:.0f}'
-    ax5.text(0.02, 0.98, stats_text, transform=ax5.transAxes,
-             fontsize=10, verticalalignment='top',
+    # 添加统计信息（使用基础的text）
+    stats_text = f'统计信息:\n总数: {vehicle_count}\n平均: {area_mean:.0f}\n标准差: {area_std:.0f}'
+    plt.text(0.98, 0.97, stats_text, transform=plt.gca().transAxes,
+             fontsize=10, verticalalignment='top', horizontalalignment='right',
              bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
-    
-    # 子图6：车型占比饼图
-    ax6 = plt.subplot(2, 3, 6)
-    
-    sizes = [len(small_vehicles), len(medium_vehicles), len(large_vehicles)]
-    labels = ['小型车', '中型车', '大型车']
-    colors_pie = ['#90EE90', '#FFA500', '#FF6B6B']
-    explode = (0.05, 0.05, 0.05)
-    
-    wedges, texts, autotexts = ax6.pie(sizes, explode=explode, labels=labels, 
-                                         colors=colors_pie, autopct='%1.1f%%',
-                                         shadow=True, startangle=90)
-    
-    # 美化文字
-    for text in texts:
-        text.set_fontsize(12)
-        text.set_fontweight('bold')
-    for autotext in autotexts:
-        autotext.set_color('white')
-        autotext.set_fontsize(11)
-        autotext.set_fontweight('bold')
-    
-    ax6.set_title('车型分布占比', fontsize=14, fontweight='bold')
     
     # 添加总标题
     fig.suptitle('交通车辆检测与流量分析系统 - 综合报告', 
-                fontsize=18, fontweight='bold', y=0.995)
+                fontsize=16, fontweight='bold')
     
-    plt.tight_layout(rect=[0, 0, 1, 0.985])
+    plt.tight_layout()
     
-    print(f"✓ 已生成包含6个子图的完整分析报告")
+    print(f"✓ 已生成包含4个子图的分析报告")
 else:
     print("警告：无法生成报告，未检测到车辆")
     fig = None
@@ -339,7 +277,6 @@ if vehicle_count > 0:
     print(f"\n【一、车辆检测统计】")
     print(f"  总检测车辆数: {vehicle_count} 辆")
     print(f"  小型车数量: {len(small_vehicles)} 辆 ({len(small_vehicles)/vehicle_count*100:.1f}%)")
-    print(f"  中型车数量: {len(medium_vehicles)} 辆 ({len(medium_vehicles)/vehicle_count*100:.1f}%)")
     print(f"  大型车数量: {len(large_vehicles)} 辆 ({len(large_vehicles)/vehicle_count*100:.1f}%)")
     
     print(f"\n【二、车辆特征分析】")
