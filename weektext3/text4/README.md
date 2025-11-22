@@ -18,16 +18,5 @@
 6. 添加图例和网格
 7. 保存图像为 `functions_plot.png`
 
-## 要求
-
-- 使用 Numpy 和 Matplotlib 库
-- 正确设置线条样式和颜色
-- 图表包含所有必要的元素（标题、标签、图例、网格）
-
-## 提示
-
-- 使用 `np.linspace()` 生成 x 数据
-- 使用 `**` 运算符计算幂次
-- 使用 `plt.plot()` 绘制曲线，注意设置 color、linestyle 和 label 参数
-- 使用 `plt.legend()` 显示图例
-- 使用 `plt.grid()` 添加网格
+## 提交要求
+提交图片和源代码
